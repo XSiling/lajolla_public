@@ -3,6 +3,72 @@
 #include "lajolla.h"
 #include "spectrum.h"
 
+
+inline Real sqr(Real x) {
+    return (x * x);
+}
+
+
+inline Real GTR1(Real cosTheta, Real alpha) {
+    Real alpha2 = alpha * alpha;
+    if ((c_PI * std::log(alpha2) * (1 + (alpha2 - 1) * cosTheta * cosTheta)) == 0) {
+        printf("weird! GTR1!");
+    }
+    return (alpha2 - 1) /
+        (c_PI * std::log(alpha2) * (1 + (alpha2 - 1) * cosTheta * cosTheta));
+}
+
+inline Real R0(Real eta) {
+    return sqr(eta - 1.0) / sqr(eta + 1.0);
+}
+
+inline Real Smith_metal(Vector3 w, Real ax, Real ay) {
+    Real sigma = std::sqrt(Real(1) + (sqr(w.x * ax) + sqr(w.y * ay)) / (sqr(w.z))) - Real(1);
+    sigma = sigma / Real(2);
+    return Real(1) / (Real(1) + sigma);
+}
+
+template <typename T>
+inline T schlick_fresnel_approximation(const T& F0, Real cos_theta) {
+    return 1 + (F0 - 1) * (pow(1 - cos_theta, 5));
+}
+
+inline Real GGX_metal(Vector3 h, Real ax, Real ay) {
+    return 1 / (c_PI * ax * ay * sqr(sqr(h.x / ax) + sqr(h.y / ay) + sqr(h.z)));
+}
+
+
+inline Vector3 sample_visible_normals_metal(const Vector3& local_dir_in, Real alphax, Real alphay, const Vector2& rnd_param) {
+    // The incoming direction is in the "ellipsodial configuration" in Heitz's paper
+    if (local_dir_in.z < 0) {
+        // Ensure the input is on top of the surface.
+        return -sample_visible_normals_metal(-local_dir_in, alphax, alphay, rnd_param);
+    }
+
+    // Transform the incoming direction to the "hemisphere configuration".
+    Vector3 hemi_dir_in = normalize(
+        Vector3{ alphax * local_dir_in.x, alphay * local_dir_in.y, local_dir_in.z });
+
+    // Parameterization of the projected area of a hemisphere.
+    // First, sample a disk.
+    Real r = sqrt(rnd_param.x);
+    Real phi = 2 * c_PI * rnd_param.y;
+    Real t1 = r * cos(phi);
+    Real t2 = r * sin(phi);
+    // Vertically scale the position of a sample to account for the projection.
+    Real s = (1 + hemi_dir_in.z) / 2;
+    t2 = (1 - s) * sqrt(1 - t1 * t1) + s * t2;
+    // Point in the disk space
+    Vector3 disk_N{ t1, t2, sqrt(max(Real(0), 1 - t1 * t1 - t2 * t2)) };
+
+    // Reprojection onto hemisphere -- we get our sampled normal in hemisphere space.
+    Frame hemi_frame(hemi_dir_in);
+    Vector3 hemi_N = to_world(hemi_frame, disk_N);
+
+    // Transforming the normal back to the ellipsoid configuration
+    return normalize(Vector3{ alphax * hemi_N.x, alphay * hemi_N.y, max(Real(0), hemi_N.z) });
+}
+
 /// A microfacet model assumes that the surface is composed of infinitely many little mirrors/glasses.
 /// The orientation of the mirrors determines the amount of lights reflected.
 /// The distribution of the orientation is determined empirically.
@@ -21,7 +87,7 @@
 /// for a really nice introduction.
 /// https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
 template <typename T>
-inline T schlick_fresnel(const T &F0, Real cos_theta) {
+inline T schlick_fresnel(const T& F0, Real cos_theta) {
     return F0 + (Real(1) - F0) *
         pow(max(1 - cos_theta, Real(0)), Real(5));
 }
@@ -45,6 +111,7 @@ inline Real fresnel_dielectric(Real n_dot_i, Real n_dot_t, Real eta) {
 /// n_dot_i: cos(incident angle) (can be negative)
 /// eta: eta_transmission / eta_incident
 inline Real fresnel_dielectric(Real n_dot_i, Real eta) {
+    //printf("eta is %f \n", eta);
     assert(eta > 0);
     Real n_dot_t_sq = 1 - (1 - n_dot_i * n_dot_i) / (eta * eta);
     if (n_dot_t_sq < 0) {
@@ -59,7 +126,7 @@ inline Real GTR2(Real n_dot_h, Real roughness) {
     Real alpha = roughness * roughness;
     Real a2 = alpha * alpha;
     Real t = 1 + (a2 - 1) * n_dot_h * n_dot_h;
-    return a2 / (c_PI * t*t);
+    return a2 / (c_PI * t * t);
 }
 
 inline Real GGX(Real n_dot_h, Real roughness) {
@@ -72,7 +139,7 @@ inline Real GGX(Real n_dot_h, Real roughness) {
 /// https://jcgt.org/published/0003/02/03/paper.pdf
 /// The derivation is based on Smith's paper "Geometrical shadowing of a random rough surface".
 /// Note that different microfacet distributions have different masking terms.
-inline Real smith_masking_gtr2(const Vector3 &v_local, Real roughness) {
+inline Real smith_masking_gtr2(const Vector3& v_local, Real roughness) {
     Real alpha = roughness * roughness;
     Real a2 = alpha * alpha;
     Vector3 v2 = v_local * v_local;
@@ -82,7 +149,7 @@ inline Real smith_masking_gtr2(const Vector3 &v_local, Real roughness) {
 
 /// See "Sampling the GGX Distribution of Visible Normals", Heitz, 2018.
 /// https://jcgt.org/published/0007/04/01/
-inline Vector3 sample_visible_normals(const Vector3 &local_dir_in, Real alpha, const Vector2 &rnd_param) {
+inline Vector3 sample_visible_normals(const Vector3& local_dir_in, Real alpha, const Vector2& rnd_param) {
     // The incoming direction is in the "ellipsodial configuration" in Heitz's paper
     if (local_dir_in.z < 0) {
         // Ensure the input is on top of the surface.
@@ -91,7 +158,7 @@ inline Vector3 sample_visible_normals(const Vector3 &local_dir_in, Real alpha, c
 
     // Transform the incoming direction to the "hemisphere configuration".
     Vector3 hemi_dir_in = normalize(
-        Vector3{alpha * local_dir_in.x, alpha * local_dir_in.y, local_dir_in.z});
+        Vector3{ alpha * local_dir_in.x, alpha * local_dir_in.y, local_dir_in.z });
 
     // Parameterization of the projected area of a hemisphere.
     // First, sample a disk.
@@ -103,12 +170,12 @@ inline Vector3 sample_visible_normals(const Vector3 &local_dir_in, Real alpha, c
     Real s = (1 + hemi_dir_in.z) / 2;
     t2 = (1 - s) * sqrt(1 - t1 * t1) + s * t2;
     // Point in the disk space
-    Vector3 disk_N{t1, t2, sqrt(max(Real(0), 1 - t1*t1 - t2*t2))};
+    Vector3 disk_N{ t1, t2, sqrt(max(Real(0), 1 - t1 * t1 - t2 * t2)) };
 
     // Reprojection onto hemisphere -- we get our sampled normal in hemisphere space.
     Frame hemi_frame(hemi_dir_in);
     Vector3 hemi_N = to_world(hemi_frame, disk_N);
 
     // Transforming the normal back to the ellipsoid configuration
-    return normalize(Vector3{alpha * hemi_N.x, alpha * hemi_N.y, max(Real(0), hemi_N.z)});
+    return normalize(Vector3{ alpha * hemi_N.x, alpha * hemi_N.y, max(Real(0), hemi_N.z) });
 }

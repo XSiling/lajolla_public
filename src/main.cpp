@@ -9,11 +9,13 @@
 #include <vector>
 
 int main(int argc, char *argv[]) {
+    /*
     if (argc <= 1) {
         std::cout << "[Usage] ./lajolla [-t num_threads] [-o output_file_name] filename.xml" << std::endl;
         return 0;
     }
 
+    
     int num_threads = std::thread::hardware_concurrency();
     std::string outputfile = "";
     std::vector<std::string> filenames;
@@ -26,7 +28,14 @@ int main(int argc, char *argv[]) {
             filenames.push_back(std::string(argv[i]));
         }
     }
+    */
 
+    /* version of no need for params, just edit here*/
+    int num_threads = std::thread::hardware_concurrency();
+    //std::string outputfile = "image_volpath_hetvol_colored.exr";
+    std::string outputfile = "image_mytest.exr";
+    std::vector<std::string> filenames;
+    filenames.push_back("../scenes/mytest/untitled3.xml");
     RTCDevice embree_device = rtcNewDevice(nullptr);
     parallel_init(num_threads);
 

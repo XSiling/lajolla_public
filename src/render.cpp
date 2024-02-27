@@ -158,10 +158,13 @@ Image3 render(const Scene &scene) {
             scene.options.integrator == Integrator::MeanCurvature ||
             scene.options.integrator == Integrator::RayDifferential ||
             scene.options.integrator == Integrator::MipmapLevel) {
+        std::cout << "1" << std::endl;
         return aux_render(scene);
     } else if (scene.options.integrator == Integrator::Path) {
+        std::cout << "2" << std::endl;
         return path_render(scene);
     } else if (scene.options.integrator == Integrator::VolPath) {
+        std::cout << "3" << std::endl;
         return vol_path_render(scene);
     } else {
         assert(false);

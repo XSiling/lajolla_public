@@ -97,6 +97,13 @@ struct DisneyBSDF {
     Real eta;
 };
 
+
+/// the project: thin film materials
+// the parameters 
+struct ThinFilm {
+    Texture<Real> Dinc;
+    Texture<Real> 
+};
 // To add more materials, first create a struct for the material, then overload the () operators for all the
 // functors below.
 using Material = std::variant<Lambertian,
