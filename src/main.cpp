@@ -31,11 +31,12 @@ int main(int argc, char *argv[]) {
     */
 
     /* version of no need for params, just edit here*/
-    int num_threads = std::thread::hardware_concurrency();
+    //int num_threads = std::thread::hardware_concurrency();
+    int num_threads = 1;
     //std::string outputfile = "image_volpath_hetvol_colored.exr";
-    std::string outputfile = "image_mytest.exr";
+    std::string outputfile = "image_mytest_thinfilm.exr";
     std::vector<std::string> filenames;
-    filenames.push_back("../scenes/mytest/untitled3.xml");
+    filenames.push_back("../scenes/thinfilm/white_furnace.xml");
     RTCDevice embree_device = rtcNewDevice(nullptr);
     parallel_init(num_threads);
 

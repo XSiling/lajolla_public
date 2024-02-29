@@ -497,6 +497,9 @@ Texture<Real> parse_float_texture(
     }
 }
 
+
+
+
 Spectrum parse_intensity(pugi::xml_node node,
                          const std::map<std::string, std::string> &default_map) {
     std::string rad_type = node.name();
@@ -1167,7 +1170,48 @@ std::tuple<std::string /* ID */, Material> parse_bsdf(
         // TODO: implement actual null BSDF (the ray will need to pass through the shape)
         return std::make_tuple(id, Lambertian{
             make_constant_spectrum_texture(fromRGB(Vector3{0.0, 0.0, 0.0}))});
-    } else {
+    } else if (type == "irid") {
+        Texture<Spectrum> eta = make_constant_spectrum_texture(Vector3(3, 3, 3));
+        Texture<Spectrum> k = make_constant_spectrum_texture(make_zero_spectrum());
+        Texture<Spectrum> filmEta = make_constant_spectrum_texture(make_const_spectrum(2.0));
+        Texture<Spectrum> height = make_constant_spectrum_texture(make_const_spectrum(5000));
+        Texture<Real> alpha = make_constant_float_texture(0.0001);
+        
+        for (auto child : node.children()) {
+            std::string name = child.attribute("name").value();
+
+            if (name == "eta") {
+                eta = parse_spectrum_texture(child, texture_map, texture_pool, default_map);
+            }
+
+            if (name == "k") {
+                k = parse_spectrum_texture(child, texture_map, texture_pool, default_map);
+            }
+
+            if (name == "filmEta") {
+                filmEta = parse_spectrum_texture(child, texture_map, texture_pool, default_map);
+            }
+
+            if (name == "height") {
+                height = parse_spectrum_texture(child, texture_map, texture_pool, default_map);
+            }
+
+            if (name == "alpha") {
+                alpha = parse_float_texture(child, texture_map, texture_pool, default_map);
+            }
+
+
+        }
+
+        return std::make_tuple(id, ThinFilm{
+            eta,
+            k,
+            filmEta,
+            height,
+            alpha
+            });
+    }
+    else {
         Error(std::string("Unknown BSDF: ") + type);
     }
     return std::make_tuple("", Material{});

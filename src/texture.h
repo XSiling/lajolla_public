@@ -162,6 +162,10 @@ inline ConstantTexture<Spectrum> make_constant_spectrum_texture(const Spectrum &
     return ConstantTexture<Spectrum>{spec};
 }
 
+inline ConstantTexture<bool> make_constant_bool_texture(const bool& value) {
+    return ConstantTexture<bool>{value};
+}
+
 inline ConstantTexture<Real> make_constant_float_texture(Real f) {
     return ConstantTexture<Real>{f};
 }
