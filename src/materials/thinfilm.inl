@@ -94,9 +94,11 @@ std::optional<BSDFSampleRecord>
 	Vector3 half_vector = to_world(frame, local_micro_normal);
 
 	Spectrum reflected = normalize(dir_in + 2 * dot(dir_in, half_vector) * half_vector);
-	return BSDFSampleRecord{ reflected, eta[0], alpha};
-	//Spectrum I = IridescenceTerm(height, dot(dir_in, half_vector), m_eta1, m_eta2, m_eta, k, wavelengths, true, false);
+	reflected = 2 * dot(dir_in, half_vector) * half_vector - dir_in;
+	return BSDFSampleRecord{ reflected, 1.0, alpha};
+
 }
+
 
 TextureSpectrum get_texture_op::operator()(const ThinFilm& bsdf) const {
 	return make_constant_spectrum_texture(make_zero_spectrum());

@@ -1210,6 +1210,7 @@ std::tuple<std::string /* ID */, Material> parse_bsdf(
             height,
             alpha
             });
+            
     }
     else {
         Error(std::string("Unknown BSDF: ") + type);

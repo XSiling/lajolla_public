@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     //std::string outputfile = "image_volpath_hetvol_colored.exr";
     std::string outputfile = "image_disney_thinfilm.exr";
     std::vector<std::string> filenames;
-    filenames.push_back("../scenes/disney_bsdf_test/disney_thinfilm.xml");
+    filenames.push_back("../scenes/disney_bsdf_test/disney_thinfilm1.xml");
     RTCDevice embree_device = rtcNewDevice(nullptr);
     parallel_init(num_threads);
 
