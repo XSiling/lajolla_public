@@ -116,6 +116,17 @@ inline TVector2<T> operator/(const TVector2<T> &v, const T &s) {
 }
 
 template <typename T>
+inline TVector2<T> operator*(const TVector2<T>& v0, const TVector2<T>& v1) {
+    return TVector2<T>(v0.x * v1.x, v0.y * v1.y);
+}
+
+template <typename T>
+inline TVector2<T> operator/(const TVector2<T>& v0, const TVector2<T>& v1) {
+    return TVector2<T>(v0.x / v1.x, v0.y / v1.y);
+}
+
+
+template <typename T>
 inline TVector3<T> operator+(const TVector3<T> &v0, const TVector3<T> &v1) {
     return TVector3<T>(v0.x + v1.x, v0.y + v1.y, v0.z + v1.z);
 }

@@ -18,7 +18,7 @@
 
       <!-- `eta` and `k` specify the complex IOR of the base layer -->
       <spectrum name="eta"  value="3" />
-      <spectrum name="k"    value="0.00" />
+      <spectrum name="k"    value="1.2" />
 
       <!-- `filmEta` and `height` specify the IOR of the film and
               its thickness in nanometers -->

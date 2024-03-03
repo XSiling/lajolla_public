@@ -25,7 +25,76 @@ Spectrum eval_op::operator()(const ThinFilm &bsdf) const {
 	Vector3 half_vector = normalize(dir_in + dir_out);
 	Real NDotH = dot(frame.n, half_vector);
 	
+	Real eta_2 = filmEta[0];
+	Real eta_3 = eta[0];
+	Real kappa3 = k[0];
+	Real Dinc = 0.5;
+	Real smoothstep;
+	smoothstep = std::clamp((kappa3 - 0.0) / (0.03 - 0.0), 0.0, 1.0);
+	smoothstep = smoothstep * smoothstep * (3.0 - 2.0 * smoothstep);
+
+	eta_2 = 1.0 * (1 - smoothstep) + eta_2 * smoothstep;
+
+	Real cosTheta1 = dot(half_vector, dir_out);
+	Real cosTheta2 = sqrt(1.0 - sqr(1.0 / eta_2) * (1 - sqr(cosTheta1)));
+
+	Vector2 R12, phi12;
+	fresnelDielectric(cosTheta1, 1.0, eta_2, R12, phi12);
+	Vector2 R21 = R12;
+	Vector2 T121 = Vector2(1.0, 1.0) - R12;
+	Vector2 phi21 = Vector2(c_PI, c_PI) - phi12;
+
+	Vector2 R23, phi23;
+	fresnelConductor(cosTheta2, eta_2, eta_3, kappa3, R23, phi23);
+
+	float OPD = Dinc * cosTheta2;
+	Vector2 phi2 = phi21 + phi23;
+
+	Vector3 I = Vector3(0, 0, 0);
+	Vector2 R123 = Vector2(R12.x * R23.x, R12.y * R23.y);//R12 * R23;
+	Vector2 r123 = Vector2(sqrt(r123[0]), sqrt(r123[1]));
+	Vector2 Rs = Vector2(sqr(T121).x * R23.x, sqr(T121).y * R23.y)  / (1 - R123);
+	
+	Vector2 C0 = R12 + Rs;
+	Vector3 S0 = evalSensitivity_bsdf(0.0, 0.0);
+	I += (Real)depol(C0) * S0;
+
+	Vector2 Cm = Rs - T121;
+	for (int m = 1; m <= 3; ++m) {
+		Cm = Cm * r123;
+		Vector3 SmS = 2.0 * evalSensitivity_bsdf(m * OPD, m * phi2.x);
+		Vector3 SmP = 2.0 * evalSensitivity_bsdf(m * OPD, m * phi2.y);
+		I += depolColor(Cm.x * SmS, Cm.y * SmP);
+	}
+
+	Real XYZ_TO_RGB[9] = { 2.3706743, -0.5138850, 0.0052982, -0.9000405, 1.4253036, -0.0146949, -0.4706338, 0.0885814, 1.0093968 };
+	
+	for (int i = 0; i < 3; ++i) {
+		Real x = 0.0;
+		for (int j = 0; j < 3; ++j) {
+			int index = i + 3 * j;
+			x += I[j] * XYZ_TO_RGB[index];
+		}
+		x = std::clamp(x, 0.0, 1.0);
+		I[i] = x;
+		
+	}
+	//I = std::clamp(XYZ_TO_RGB * I, Vector3(0.0, 0.0, 0.0), Vector3(1.0, 1.0, 1.0));
+
 	Real D = GTR2(NDotH, alpha);
+	if (D == 0) {
+		return make_zero_spectrum();
+	}
+	Real G = smith_masking_gtr2(to_local(frame, dir_in), alpha) * smith_masking_gtr2(to_local(frame, dir_out), alpha);
+
+	return D * G * I / (4.0 * dot(frame.n, dir_in));
+	/*
+	MicrofacetDistribution distr((MicrofacetDistribution::EType)1, alpha, true);
+
+
+	Real D = GTR2(NDotH, alpha);
+	//Real D = distr.eval(to_local(frame, half_vector));
+
 	if (D == 0) {
 		return make_zero_spectrum();
 	}
@@ -33,12 +102,20 @@ Spectrum eval_op::operator()(const ThinFilm &bsdf) const {
 	Spectrum m_eta1 = make_const_spectrum(1.0);
 	Spectrum m_eta = eta;
 	Spectrum m_eta2 = filmEta;
-
+	
 	Spectrum I = IridescenceTerm(height, dot(dir_in, half_vector), m_eta1, m_eta2, m_eta, k, wavelengths, true, false);// * (1.0, 1.0, 1.0) specular
 
+	I = FresnelCoating(dot(dir_in, half_vector));
+
 	Real G = smith_masking_gtr2(to_local(frame, dir_in), alpha) * smith_masking_gtr2(to_local(frame, dir_out), alpha);
+	//Real G = distr.G(to_local(frame, dir_in), to_local(frame,dir_out), half_vector);
+	return I;
+
+	return I * D * G / (4.0 * NDotV);
+	//return D * I * G / (4.0 * NDotV);
+	*/
+
 	
-	return D * I * G / (4.0 * NDotV);
 }
 
 Real pdf_sample_bsdf_op::operator()(const ThinFilm& bsdf) const {
@@ -56,7 +133,10 @@ Real pdf_sample_bsdf_op::operator()(const ThinFilm& bsdf) const {
 	Vector3 half_vector = normalize(dir_in + dir_out);
 	Real NDotH = dot(frame.n, half_vector);
 	Real NDotV = dot(frame.n, dir_in);
-
+	/*
+	MicrofacetDistribution distr((MicrofacetDistribution::EType)1, alpha, true);
+	return distr.eval(half_vector) * distr.smithG1(to_local(frame, dir_in), half_vector) / (4.0 * NDotV);
+	*/
 	Real D = GTR2(NDotH, alpha);
 	Real G1 = smith_masking_gtr2(to_local(frame, dir_in), alpha);
 
@@ -64,7 +144,7 @@ Real pdf_sample_bsdf_op::operator()(const ThinFilm& bsdf) const {
 }
 
 std::optional<BSDFSampleRecord>
-	sample_bsdf_op::operator()(const ThinFilm& bsdf) const {
+sample_bsdf_op::operator()(const ThinFilm& bsdf) const {
 	if (dot(vertex.geometric_normal, dir_in) < 0) {
 		return {};
 	}
@@ -74,20 +154,20 @@ std::optional<BSDFSampleRecord>
 		frame = -frame;
 	}
 
-	Real pdf;
-
-
-	Vector3 wavelengths = { 580.0, 550.0, 450.0 };
-
+	
 	Real alpha = eval(bsdf.alpha, vertex.uv, vertex.uv_screen_size, texture_pool);
 	Spectrum eta = eval(bsdf.eta, vertex.uv, vertex.uv_screen_size, texture_pool);
-	Spectrum k = eval(bsdf.k, vertex.uv, vertex.uv_screen_size, texture_pool);
-	Spectrum filmEta = eval(bsdf.filmEta, vertex.uv, vertex.uv_screen_size, texture_pool);
-	Spectrum height = eval(bsdf.height, vertex.uv, vertex.uv_screen_size, texture_pool);
+	//Vector3 projected_dir_in = to_local(frame, dir_in);
+	/*
+	MicrofacetDistribution distr((MicrofacetDistribution::EType)1, alpha, true);
+	Real pdf;
+	Normal m = distr.sample(to_local(frame,dir_in), rnd_param_uv, pdf);
+	Normal m1 = to_world(frame, m);
 
-	Spectrum m_eta1 = make_const_spectrum(1.0);
-	Spectrum m_eta = eta;
-	Spectrum m_eta2 = filmEta;
+	Spectrum reflected = 2 * dot(dir_in, m1) * m1 - dir_in;
+
+	return BSDFSampleRecord{ reflected, 1.0f, alpha };
+	*/
 
 	Vector3 local_dir_in = to_local(frame, dir_in);
 	Vector3 local_micro_normal = sample_visible_normals(local_dir_in, alpha, rnd_param_uv);
@@ -95,8 +175,7 @@ std::optional<BSDFSampleRecord>
 
 	Spectrum reflected = normalize(dir_in + 2 * dot(dir_in, half_vector) * half_vector);
 	reflected = 2 * dot(dir_in, half_vector) * half_vector - dir_in;
-	return BSDFSampleRecord{ reflected, 1.0, alpha};
-
+	return BSDFSampleRecord{ reflected, eta[0], alpha};
 }
 
 
