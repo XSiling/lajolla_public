@@ -3,7 +3,6 @@
 #include "lajolla.h"
 #include "spectrum.h"
 
-
 inline Real sqr(Real x) {
     return (x * x);
 }
@@ -124,6 +123,8 @@ inline Real fresnel_dielectric(Real n_dot_i, Real n_dot_t, Real eta) {
     Real F = (rs * rs + rp * rp) / 2;
     return F;
 }
+
+
 
 /// https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
 /// This is a specialized version for the code above, only using the incident angle.
@@ -426,32 +427,32 @@ float alpha 0.01 1 0.01 --alpha
 //const mat3 XYZ_TO_RGB = mat3(2.3706743, -0.5138850, 0.0052982, -0.9000405, 1.4253036, -0.0146949, -0.4706338, 0.0885814, 1.0093968);
 
 // Square functions for cleaner code
-float sqr(float x) { return x * x; }
-Vector2 sqr(Vector2 x) { return Vector2(x[0] * x[0], x[1] * x[1]); }
+inline float sqr(float x) { return x * x; }
+inline Vector2 sqr(Vector2 x) { return Vector2(x[0] * x[0], x[1] * x[1]); }
 
 // Depolarization functions for natural light
-float depol(Vector2 polV) { return 0.5 * (polV.x + polV.y); }
-Vector3 depolColor(Vector3 colS, Vector3 colP) { return 0.5 * (colS + colP); }
+inline float depol(Vector2 polV) { return 0.5 * (polV.x + polV.y); }
+inline Vector3 depolColor(Vector3 colS, Vector3 colP) { return 0.5 * (colS + colP); }
 
 // GGX distribution function
-float GGX(float NdotH, float a) {
+inline float GGX(float NdotH, float a) {
 	float a2 = sqr(a);
 	return a2 / (c_PI * sqr(sqr(NdotH) * (a2 - 1) + 1));
 }
 
 // Smith GGX geometric functions
-float smithG1_GGX(float NdotV, float a) {
+inline float smithG1_GGX(float NdotV, float a) {
 	float a2 = sqr(a);
 	return 2 / (1 + sqrt(1 + a2 * (1 - sqr(NdotV)) / sqr(NdotV)));
 }
 
-float smithG_GGX(float NdotL, float NdotV, float a) {
+inline float smithG_GGX(float NdotL, float NdotV, float a) {
 	return smithG1_GGX(NdotL, a) * smithG1_GGX(NdotV, a);
 }
 
 
 // Fresnel equations for dielectric/dielectric interfaces.
-void fresnelDielectric(float ct1, float n1, float n2,
+inline void fresnelDielectric(float ct1, float n1, float n2,
 	Vector2 &R, Vector2& phi) {
 
 	float st1 = (1 - ct1 * ct1); // Sinus theta1 'squared'
@@ -475,7 +476,7 @@ void fresnelDielectric(float ct1, float n1, float n2,
 }
 
 // Fresnel equations for dielectric/conductor interfaces.
-void fresnelConductor(float ct1, float n1, float n2, float k,
+inline void fresnelConductor(float ct1, float n1, float n2, float k,
 	Vector2& R, Vector2& phi) {
 
 	if (k == 0) { // use dielectric formula to avoid numerical issues
@@ -499,7 +500,7 @@ void fresnelConductor(float ct1, float n1, float n2, float k,
 
 
 // Evaluation XYZ sensitivity curves in Fourier space
-Vector3 evalSensitivity_bsdf(float opd, float shift) {
+inline Vector3 evalSensitivity_bsdf(float opd, float shift) {
 	// Use Gaussian fits, given by 3 parameters: val, pos and var
 	Real phase = 2 * c_PI * opd * 1.0e-6;
 	Vector3 val = Vector3(5.4856e-13, 4.4201e-13, 5.2481e-13);
@@ -509,11 +510,6 @@ Vector3 evalSensitivity_bsdf(float opd, float shift) {
 	xyz.x += 9.7470e-14 * sqrt(2 * c_PI * 4.5282e+09) * cos(2.2399e+06 * phase + shift) * exp(-4.5282e+09 * phase * phase);
 	return xyz / 1.0685e-7;
 }
-
-
-
-
-
 
 
 //mistuba
@@ -550,7 +546,7 @@ inline Normal normalize(const Normal& n) {
 	return Normal(my_n);
 }
 
-float hypot2(float a, float b) {
+inline float hypot2(float a, float b) {
 	float r;
 	if (std::abs(a) > std::abs(b)) {
 		r = b / a;
@@ -565,7 +561,7 @@ float hypot2(float a, float b) {
 	}
 	return r;
 }
-
+/*
 Real erf(Real x) {
 	Real a1 = (float)0.254829592;
 	float a2 = (float)-0.284496736;
@@ -584,7 +580,7 @@ Real erf(Real x) {
 
 	return sign * y;
 }
-
+*/
 class MicrofacetDistribution {
 	public:
 		/// Supported distribution types
