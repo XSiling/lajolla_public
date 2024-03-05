@@ -32,6 +32,8 @@ Spectrum eval_op::operator()(const ThinFilm& bsdf) const {
 	Real eta_3 = eta[0];
 	Real kappa3 = k[0];
 	Real Dinc = 0.5;
+
+
 	Real smoothstep;
 	smoothstep = std::clamp((kappa3 - 0.0) / (0.03 - 0.0), 0.0, 1.0);
 	smoothstep = smoothstep * smoothstep * (3.0 - 2.0 * smoothstep);
