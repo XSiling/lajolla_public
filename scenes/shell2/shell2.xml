@@ -3,8 +3,8 @@
 <!-- Defaults, these can be set via the command line: -Darg=value -->
 
 	<default name="spp" value="4096"/>
-	<default name="resx" value="512"/>
-	<default name="resy" value="512"/>
+	<default name="resx" value="256"/>
+	<default name="resy" value="256"/>
 
 <!-- Camera and Rendering Parameters -->
 
@@ -36,7 +36,7 @@
 <!-- Materials -->
 
 	<bsdf type="twosided" id="mat-Material.001" name="mat-Material.001">
-		<bsdf type="principled" name="bsdf">
+		<!-- <bsdf type="irid" name="bsdf">
 			<rgb value="0.539989 0.465565 0.360002" name="base_color"/>
 			<float name="spec_tint" value="0.000000"/>
 			<float name="spec_trans" value="0.000000"/>
@@ -48,7 +48,24 @@
 			<float name="clearcoat" value="0.155555"/>
 			<float name="clearcoat_gloss" value="0.000000"/>
 			<float name="specular" value="0.500000"/>
-		</bsdf>
+		</bsdf> -->
+		<bsdf type="irid">
+			<!-- <rgb value="0.539989 0.465565 0.360002" name="base_color"/> -->
+
+			<boolean name="spectralAntialiasing" value="true"/>
+	  
+			<!-- `eta` and `k` specify the complex IOR of the base layer -->
+			<spectrum name="eta"  value="3" />
+			<spectrum name="k"    value="1.2" />
+	  
+			<!-- `filmEta` and `height` specify the IOR of the film and
+					its thickness in nanometers -->
+			<spectrum name="filmEta"  value="2" />
+			<spectrum name="height"   value="5000" />
+	  
+			<!-- Roughness of the microfacet model -->
+			<float    name="alpha"    value="0.0001" />
+		  </bsdf>
 	</bsdf>
 
 <!-- Emitters -->

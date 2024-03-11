@@ -6,7 +6,7 @@
   </integrator>
 
   <shape type="serialized">
-    <string name="filename" value="../matpreview/matpreview.serialized"/>
+    <string name="filename" value="../meshes/shell2.ply"/>
     <integer name="shapeIndex" value="2"/>
     <transform name="toWorld">
       <matrix value="0.614046 0.614047 0 -1.78814e-07 -0.614047 0.614046 0 2.08616e-07 0 0 0.868393 1.02569 0 0 0 1"/>
