@@ -163,6 +163,7 @@ Spectrum path_tracing(const Scene &scene,
                 // Let's compute f (BSDF) next.
                 Vector3 dir_view = -ray.dir;
                 assert(vertex.material_id >= 0);
+
                 Spectrum f = eval(mat, dir_view, dir_light, vertex, scene.texture_pool);
 
                 // Evaluate the emission

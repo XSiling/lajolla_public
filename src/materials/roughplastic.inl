@@ -32,7 +32,7 @@ Spectrum eval_op::operator()(const RoughPlastic &bsdf) const {
         bsdf.specular_reflectance, vertex.uv, vertex.uv_screen_size, texture_pool);
     Real roughness = eval(
         bsdf.roughness, vertex.uv, vertex.uv_screen_size, texture_pool);
-    // Clamp roughness to avoid numerical issues.
+    // Clamp roughness to avoid numerical issues. (?)
     roughness = std::clamp(roughness, Real(0.01), Real(1));
 
     // We first account for the dielectric layer.

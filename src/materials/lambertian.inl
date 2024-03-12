@@ -32,6 +32,7 @@ Real pdf_sample_bsdf_op::operator()(const Lambertian &bsdf) const {
     return fmax(dot(frame.n, dir_out), Real(0)) / c_PI;
 }
 
+// what's the difference between this one and the above?
 std::optional<BSDFSampleRecord> sample_bsdf_op::operator()(const Lambertian &bsdf) const {
     // For Lambertian, we importance sample the cosine hemisphere domain.
     if (dot(vertex.geometric_normal, dir_in) < 0) {

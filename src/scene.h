@@ -21,6 +21,7 @@ enum class Integrator {
     VolPath
 };
 
+
 struct RenderOptions {
     Integrator integrator = Integrator::Path;
     int samples_per_pixel = 4;
@@ -29,6 +30,17 @@ struct RenderOptions {
     int vol_path_version = 0;
     int max_null_collisions = 1000;
 };
+
+/*
+struct RenderOptions {
+    Integrator integrator = Integrator::Path;
+    int samples_per_pixel = 4;
+    int max_depth = 10;
+    int rr_depth = 5;
+    int vol_path_version = 0;
+    int max_null_collisions = 10;
+};*/
+
 
 /// Bounding sphere
 struct BSphere {

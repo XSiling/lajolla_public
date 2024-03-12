@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+This scene permits to test spectral integration of the spectraly antialiased
+iridescent BRDF model.
+
+If the thin film's height is very large, then there is no longer any chromatic
+changes due to iridescence. Since we are testing with a small roughness (hence
+almost no shadowing/masking) we should get a gray image.
+
+Since mitsuba use a discrete number of spectral samples, you might experience
+some ringing artifacts (spectral aliasing with respect to view direction) for
+the non-antialiased versions.
+-->
+<scene version="0.5.0">
+	<integrator type="path"/>
+
+	<shape type="sphere">
+      <bsdf type="irid">
+         <!-- Set this parameter to `false` to use the naive model -->
+         <boolean name="spectralAntialiasing" value="true"/>
+
+         <!-- `eta` and `k` specify the complex IOR of the base layer -->
+         <spectrum name="eta"  value="3" />
+         <spectrum name="k"    value="0.00" />
+
+         <!-- `filmEta` and `height` specify the IOR of the film and
+              its thickness in nanometers -->
+         <spectrum name="filmEta"  value="2" />
+         <spectrum name="height"   value="5000" />
+
+         <!-- Roughness of the microfacet model -->
+			<float    name="alpha"    value="0.0001" />
+		</bsdf>
+	</shape>
+
+	<sensor type="orthographic">
+		<transform name="toWorld">
+			<lookat target="0, 0, 0" origin="0, 1.5, 0" up="0, 0, 1"/>
+		</transform>
+
+		<sampler type="ldsampler">
+			<integer name="sampleCount" value="64"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<boolean name="banner" value="false"/>
+
+			<integer name="height" value="512"/>
+			<integer name="width" value="512"/>
+
+			<string name="pixelFormat" value="rgb"/>
+
+			<rfilter type="gaussian"/>
+		</film>
+	</sensor>
+
+   <emitter type="constant">
+      <spectrum name="radiance" value="1.0" />
+   </emitter>
+</scene>

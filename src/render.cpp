@@ -74,9 +74,11 @@ Image3 path_render(const Scene &scene) {
 
     constexpr int tile_size = 16;
     int num_tiles_x = (w + tile_size - 1) / tile_size;
+    printf("%d, %d, %d\n", h, tile_size, (h + tile_size - 1) / tile_size);
     int num_tiles_y = (h + tile_size - 1) / tile_size;
-
+    printf("num_tiles_y: %d\n", num_tiles_y);
     ProgressReporter reporter(num_tiles_x * num_tiles_y);
+
     parallel_for([&](const Vector2i &tile) {
         // Use a different rng stream for each thread.
         pcg32_state rng = init_pcg32(tile[1] * num_tiles_x + tile[0]);
@@ -158,10 +160,13 @@ Image3 render(const Scene &scene) {
             scene.options.integrator == Integrator::MeanCurvature ||
             scene.options.integrator == Integrator::RayDifferential ||
             scene.options.integrator == Integrator::MipmapLevel) {
+        std::cout << "1" << std::endl;
         return aux_render(scene);
     } else if (scene.options.integrator == Integrator::Path) {
+        std::cout << "2" << std::endl;
         return path_render(scene);
     } else if (scene.options.integrator == Integrator::VolPath) {
+        std::cout << "3" << std::endl;
         return vol_path_render(scene);
     } else {
         assert(false);

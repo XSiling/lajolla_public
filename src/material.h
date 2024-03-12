@@ -97,6 +97,22 @@ struct DisneyBSDF {
     Real eta;
 };
 
+
+/// the project: thin film materials
+// the parameters refers to IridescentMicrofacet.brdf
+struct ThinFilm {
+    Texture<Spectrum> eta;
+    Texture<Spectrum> k;
+
+    Texture<Spectrum> filmEta;
+    Texture<Spectrum> height;
+
+    Texture<Real> alpha;
+
+};
+
+
+
 // To add more materials, first create a struct for the material, then overload the () operators for all the
 // functors below.
 using Material = std::variant<Lambertian,
@@ -107,7 +123,8 @@ using Material = std::variant<Lambertian,
                               DisneyGlass,
                               DisneyClearcoat,
                               DisneySheen,
-                              DisneyBSDF>;
+                              DisneyBSDF,
+                              ThinFilm>;
 
 /// We allow non-reciprocal BRDFs, so it's important
 /// to distinguish which direction we are tracing the rays.

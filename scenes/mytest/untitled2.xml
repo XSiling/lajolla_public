@@ -1,0 +1,208 @@
+<scene version="2.1.0">
+
+<!-- Defaults, these can be set via the command line: -Darg=value -->
+
+
+
+<!-- Camera and Rendering Parameters -->
+
+	<integrator type="volpath" id="elm__0" name="elm__0">
+		<integer name="max_depth" value="12"/>
+    <integer name="version" value="6"/>
+	</integrator>
+	<sensor type="perspective" id="elm__3" name="elm__3">
+		<string name="fov_axis" value="x"/>
+		<float name="fov" value="39.597755"/>
+		<float name="principal_point_offset_x" value="0.000000"/>
+		<float name="principal_point_offset_y" value="-0.000000"/>
+		<float name="near_clip" value="0.100000"/>
+		<float name="far_clip" value="100.000000"/>
+		<transform name="to_world">
+			<rotate x="1" angle="-165.55937317890525"/>
+			<rotate y="1" angle="-86.99209647703127"/>
+			<rotate z="1" angle="-179.9999640278213"/>
+			<translate value="6.078890 1.598309 0.345791"/>
+		</transform>
+		<sampler type="independent" name="sampler">
+			<integer name="sampleCount" value="256"/>
+		</sampler>
+    <film type="hdrfilm" id="film">
+      <integer name="width" value="683"/>
+      <integer name="height" value="512"/>
+      <string name="pixelFormat" value="rgb"/>
+      <boolean name="banner" value="false"/>
+
+      <rfilter type="gaussian"/>
+    </film>
+	</sensor>
+
+<!-- Materials -->
+  <medium type="homogeneous" id="medium">
+    <rgb name="sigmaA" value="1.0 1.0 1.0"/>
+    <rgb name="sigmaS" value="0.5 0.5 0.5"/>
+    <float name="scale" value="200"/>
+  </medium>
+
+  <shape type="sphere">
+    <point name="center" x="0" y="0" z="0"/>
+    <float name="radius" value="1"/>
+
+    <ref name="interior" id="medium"/>
+
+    <bsdf type="roughdielectric">
+      <float name="intIOR" value="1.33"/>
+      <float name="roughness" value="0.316"/>
+    </bsdf>
+  </shape>
+  
+	<bsdf type="twosided" id="mat-Material.002" name="mat-Material.002">
+		<bsdf type="disneybsdf" name="bsdf">
+			<rgb value="0.038434 0.253705 0.800000" name="base_color"/>
+			<float name="spec_tint" value="0.000000"/>
+			<float name="spec_trans" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
+			<float name="anisotropic" value="0.283422"/>
+			<float name="roughness" value="0.250000"/>
+			<float name="sheen" value="0.000000"/>
+			<float name="sheen_tint" value="0.500000"/>
+			<float name="clearcoat" value="0.000000"/>
+			<float name="clearcoat_gloss" value="0.000900"/>
+			<float name="specular" value="0.500000"/>
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-Material.003" name="mat-Material.003">
+		<bsdf type="disneybsdf" name="bsdf">
+			<rgb value="0.108786 0.042615 0.021509" name="base_color"/>
+			<float name="spec_tint" value="0.000000"/>
+			<float name="spec_trans" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="roughness" value="0.250000"/>
+			<float name="sheen" value="0.545455"/>
+			<float name="sheen_tint" value="0.500000"/>
+			<float name="clearcoat" value="0.000000"/>
+			<float name="clearcoat_gloss" value="0.000900"/>
+			<float name="specular" value="0.500000"/>
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-Material.004" name="mat-Material.004">
+		<bsdf type="disneybsdf" name="bsdf">
+			<rgb value="0.025151 0.088818 0.800000" name="base_color"/>
+			<float name="spec_tint" value="0.000000"/>
+			<float name="spec_trans" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="roughness" value="0.900977"/>
+			<float name="sheen" value="0.850267"/>
+			<float name="sheen_tint" value="0.500000"/>
+			<float name="clearcoat" value="0.604278"/>
+			<float name="clearcoat_gloss" value="0.199909"/>
+			<float name="specular" value="0.131016"/>
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-Material.005" name="mat-Material.005">
+		<bsdf type="disneybsdf" name="bsdf">
+			<rgb value="0.800000 0.084754 0.140401" name="base_color"/>
+			<float name="spec_tint" value="0.000000"/>
+			<float name="spec_trans" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="roughness" value="0.250000"/>
+			<float name="sheen" value="0.000000"/>
+			<float name="sheen_tint" value="0.500000"/>
+			<float name="clearcoat" value="0.000000"/>
+			<float name="clearcoat_gloss" value="0.000900"/>
+			<float name="specular" value="0.500000"/>
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-Material.006" name="mat-Material.006">
+		<bsdf type="disneybsdf" name="bsdf">
+			<rgb value="0.800000 0.183100 0.195055" name="base_color"/>
+			<float name="spec_tint" value="0.000000"/>
+			<float name="spec_trans" value="0.000000"/>
+			<float name="metallic" value="0.561497"/>
+			<float name="anisotropic" value="0.331551"/>
+			<float name="roughness" value="0.250000"/>
+			<float name="sheen" value="0.192513"/>
+			<float name="sheen_tint" value="0.500000"/>
+			<float name="clearcoat" value="0.000000"/>
+			<float name="clearcoat_gloss" value="0.000900"/>
+			<float name="specular" value="0.500000"/>
+		</bsdf>
+	</bsdf>
+	<bsdf type="disneybsdf" id="mat-Material.009" name="mat-Material.009">
+		<rgb value="1.000000 0.000000 0.300000" name="reflectance"/>
+	</bsdf>
+
+<!-- Emitters -->
+
+
+	<emitter type="point" id="elm__2" name="elm__2">
+		<point name="position" x="3.3934922218322754" y="1.523747444152832" z="-2.19553279876709"/>
+		<rgb value="79.577469 79.577469 79.577469" name="intensity"/>
+	</emitter>
+	<shape type="rectangle" id="elm__8" name="elm__8">
+		<boolean name="flip_normals" value="true"/>
+		<transform name="to_world">
+			<matrix value="0.457446 0.000000 0.000000 0.244867 0.000000 0.000000 0.457446 -0.751554 0.000000 -0.457446 0.000000 -0.249564 0.000000 0.000000 0.000000 1.000000"/>
+		</transform>
+		<emitter type="area" name="emitter">
+			<rgb value="2.986763 2.986763 2.986763" name="radiance"/>
+		</emitter>
+		<bsdf type="null" name="bsdf"/>
+	</shape>
+
+<!-- Shapes -->
+
+	<shape type="ply" id="elm__5" name="elm__5">
+		<string name="filename" value="meshes/Cube.ply"/>
+		<boolean name="face_normals" value="true"/>
+		<ref id="mat-Material.002" name="bsdf"/>
+	</shape>
+	<shape type="ply" id="elm__7" name="elm__7">
+		<string name="filename" value="meshes/floor.ply"/>
+		<boolean name="face_normals" value="true"/>
+		<ref id="mat-Material.003" name="bsdf"/>
+	</shape>
+	<shape type="ply" id="elm__10" name="elm__10">
+		<string name="filename" value="meshes/blanket.ply"/>
+		<boolean name="face_normals" value="true"/>
+		<ref id="mat-Material.004" name="bsdf"/>
+	</shape>
+	<shape type="ply" id="elm__12" name="elm__12">
+		<string name="filename" value="meshes/Icosphere.ply"/>
+		<boolean name="face_normals" value="true"/>
+		<ref id="mat-Material.005" name="bsdf"/>
+	</shape>
+	<shape type="ply" id="elm__13" name="elm__13">
+		<string name="filename" value="meshes/text.ply"/>
+		<ref id="mat-Material.004" name="bsdf"/>
+	</shape>
+
+  
+	<shape type="instance" id="elm__15" name="elm__15">
+		<ref id="mesh-text" name="shape"/>
+		<transform name="to_world">
+			<matrix value="-0.000000 0.000000 0.500000 -1.062094 0.000000 0.500000 -0.000000 0.375309 -0.500000 -0.000000 -0.000000 0.732338 0.000000 0.000000 0.000000 1.000000"/>
+		</transform>
+	</shape>
+  
+	<shape type="ply" id="elm__17" name="elm__17">
+		<string name="filename" value="meshes/Suzanne.ply"/>
+		<boolean name="face_normals" value="true"/>
+		<ref id="mat-Material.006" name="bsdf"/>
+	</shape>
+	<shape type="ply" id="elm__18" name="elm__18">
+		<string name="filename" value="meshes/Cylinder.ply"/>
+		<boolean name="face_normals" value="true"/>
+		<ref id="mat-Material.006" name="bsdf"/>
+	</shape>
+	<shape type="ply" id="elm__20" name="elm__20">
+		<string name="filename" value="meshes/Cube_002.ply"/>
+		<boolean name="face_normals" value="true"/>
+		<ref id="mat-Material.009" name="bsdf"/>
+	</shape>
+
+<!-- Volumes -->
+
+</scene>
