@@ -2,16 +2,11 @@
 
 <!-- Defaults, these can be set via the command line: -Darg=value -->
 
-  <!-- <default name="spp" value="2048"/>
+	<default name="spp" value="2048"/>
 	<default name="resx" value="860"/>
-	<default name="resy" value="540"/> -->
+	<default name="resy" value="540"/>
 
-
-  <default name="spp" value="512"/>
-  <default name="resx" value="430"/>
-  <default name="resy" value="270"/>
-  
-  <!-- Camera and Rendering Parameters -->
+<!-- Camera and Rendering Parameters -->
 
 	<integrator type="path" id="elm__0" name="elm__0">
 		<integer name="max_depth" value="12"/>
@@ -307,11 +302,11 @@
 
 <!-- Emitters -->
 
-	<emitter type="point" id="elm__127" name="elm__127">
-		<point name="position" x="4.076245307922363" y="5.903861999511719" z="-1.0054539442062378"/>
+  <emitter type="point" id="elm__127" name="elm__127">
+    <point name="position" x="4.076245307922363" y="5.903861999511719" z="-1.0054539442062378"/>
     <rgb value="50.154938 50.154938 50.154938" name="intensity"/>
-	</emitter>
-  
+  </emitter>
+
   <emitter type="envmap" id="Area_002-light">
     <string name="filename" value="../matpreview/envmap_underwater.jpg"/>
     <transform name="toWorld">
@@ -320,8 +315,7 @@
     </transform>
     <float name="scale" value="3"/>
   </emitter>
-
-  <!-- Shapes -->
+<!-- Shapes -->
 
 	<shape type="ply" id="elm__2" name="elm__2">
 		<string name="filename" value="meshes/Cube_022.ply"/>
