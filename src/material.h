@@ -101,11 +101,11 @@ struct DisneyBSDF {
 /// the project: thin film materials
 // the parameters refers to IridescentMicrofacet.brdf
 struct ThinFilm {
-    Texture<Spectrum> eta;
-    Texture<Spectrum> k;
+    Texture<Real> eta;
+    Texture<Real> k;
 
-    Texture<Spectrum> filmEta;
-    Texture<Spectrum> height;
+    Texture<Real> filmEta;
+    Texture<Real> height;
 
     Texture<Real> alpha;
 
