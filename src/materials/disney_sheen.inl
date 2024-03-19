@@ -12,25 +12,19 @@ Spectrum eval_op::operator()(const DisneySheen &bsdf) const {
         frame = -frame;
     }
 
-    // Homework 1: implement this! 
-    // i mean, at least, this one should with no fault.
+    // Homework 1: implement this!
+
+    Spectrum base_color = eval(
+        bsdf.base_color, vertex.uv, vertex.uv_screen_size, texture_pool);
+    Real sheen_tint = eval(
+        bsdf.sheen_tint, vertex.uv, vertex.uv_screen_size, texture_pool);
+
     Vector3 half_vector = normalize(dir_in + dir_out);
-
-    Spectrum base_color = eval(bsdf.base_color, vertex.uv, vertex.uv_screen_size, texture_pool);
-    Real sheen_tint = eval(bsdf.sheen_tint, vertex.uv, vertex.uv_screen_size, texture_pool);
-
-    sheen_tint = std::clamp(sheen_tint, Real(0.01), Real(1));
-
-    Real l = luminance(base_color);
-    //Real luminance = dot(Vector3(0.3, 0.6, 1.0), base_color);
-
-    Vector3 Ctint = l > 0 ? base_color / l : Vector3(1.0, 1.0, 1.0);
-    Vector3 Csheen = (1 - sheen_tint) + sheen_tint * Ctint;
-    
-    Real HDotL = dot(half_vector, dir_out);
-    Real NDotL = dot(frame.n, dir_out);
-
-    return Csheen * pow(1 - std::abs(HDotL), 5) * std::abs(NDotL);
+    Real h_dot_out = dot(half_vector, dir_out);
+    Spectrum Ctint = luminance(base_color) > 0 ? base_color / luminance(base_color) :
+        fromRGB(Vector3{1, 1, 1});
+    Spectrum Csheen = (1 - sheen_tint) * fromRGB(Vector3{1, 1, 1}) + sheen_tint * Ctint;
+    return Csheen * pow(1 - h_dot_out, Real(5)) * fmax(dot(frame.n, dir_out), Real(0));
 }
 
 Real pdf_sample_bsdf_op::operator()(const DisneySheen &bsdf) const {
@@ -45,9 +39,7 @@ Real pdf_sample_bsdf_op::operator()(const DisneySheen &bsdf) const {
         frame = -frame;
     }
 
-    // Homework 1: implement this!
-    // The homework says it should be consine hemisphere domain
-    // then just copy lambertian
+    // We sample the cosine hemisphere
     return fmax(dot(frame.n, dir_out), Real(0)) / c_PI;
 }
 
@@ -63,11 +55,10 @@ std::optional<BSDFSampleRecord>
         frame = -frame;
     }
 
-    // Homework 1: implement this!
+    // We sample the cosine hemisphere
     return BSDFSampleRecord{
-        to_world(frame, sample_cos_hemisphere(rnd_param_uv)),
-        Real(0), Real(0)
-    };
+        to_world(vertex.shading_frame, sample_cos_hemisphere(rnd_param_uv)),
+        Real(0) /* eta */, Real(1) /* roughness */};
 }
 
 TextureSpectrum get_texture_op::operator()(const DisneySheen &bsdf) const {

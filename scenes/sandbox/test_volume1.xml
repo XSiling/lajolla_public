@@ -2,14 +2,15 @@
 
 <!-- Defaults, these can be set via the command line: -Darg=value -->
 
-	<default name="spp" value="4096"/>
-	<default name="resx" value="1920"/>
-	<default name="resy" value="1080"/>
+	<default name="spp" value="256"/>
+	<default name="resx" value="960"/>
+	<default name="resy" value="540"/>
 
 <!-- Camera and Rendering Parameters -->
 
 	<integrator type="volpath" id="elm__0" name="elm__0">
 		<integer name="max_depth" value="12"/>
+    <integer name="version" value="6"/>
 	</integrator>
 	<sensor type="perspective" id="elm__1" name="elm__1">
 		<string name="fov_axis" value="x"/>
@@ -90,9 +91,4 @@
 	</shape>
 
 <!-- Volumes -->
-  <medium type="heterogeneous">
-    <volume type="constvolume" name="albedo">
-      <rgb name="value" value="0.99, 0.8, 0.8"/>
-    </volume>
-  </medium>
 </scene>
