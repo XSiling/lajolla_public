@@ -16,10 +16,10 @@ Spectrum eval_op::operator()(const ThinFilm& bsdf) const {
 	Vector3 wavelengths = { 580.0, 550.0, 450.0 };
 
 	Real alpha = eval(bsdf.alpha, vertex.uv, vertex.uv_screen_size, texture_pool);
-	Spectrum eta = eval(bsdf.eta, vertex.uv, vertex.uv_screen_size, texture_pool);
-	Spectrum k = eval(bsdf.k, vertex.uv, vertex.uv_screen_size, texture_pool);
-	Spectrum filmEta = eval(bsdf.filmEta, vertex.uv, vertex.uv_screen_size, texture_pool);
-	Spectrum height = eval(bsdf.height, vertex.uv, vertex.uv_screen_size, texture_pool);
+	Real eta = eval(bsdf.eta, vertex.uv, vertex.uv_screen_size, texture_pool);
+	Real k = eval(bsdf.k, vertex.uv, vertex.uv_screen_size, texture_pool);
+	Real filmEta = eval(bsdf.filmEta, vertex.uv, vertex.uv_screen_size, texture_pool);
+	Real height = eval(bsdf.height, vertex.uv, vertex.uv_screen_size, texture_pool);
 
 	//Real eta_2 = mix(1.0, filmEta, smoothstep(0.0, 0.03, height));
 
@@ -28,21 +28,11 @@ Spectrum eval_op::operator()(const ThinFilm& bsdf) const {
 	Vector3 half_vector = normalize(dir_in + dir_out);
 	Real NDotH = dot(frame.n, half_vector);
 
-	//Real eta_2 = filmEta[0];
-	//Real eta_3 = eta[0];
-	//Real kappa3 = k[0];
-	//Real Dinc = 0.5;
-
-	/*Real eta_2 = 1.0;
-	Real eta_3 = 1.0;
-	Real kappa3 = 1.0;
+	Real eta_2 = filmEta;
+	Real eta_3 = eta;
+	Real kappa3 = k;
 	Real Dinc = 0.5;
-	*/
 
-	Real eta_2 = 1.0;
-	Real eta_3 = 3.5;
-	Real kappa3 = 1.2;
-	Real Dinc = 1.0;
 
 	Real smoothstep;
 	smoothstep = std::clamp((kappa3 - 0.0) / (0.03 - 0.0), 0.0, 1.0);
@@ -69,7 +59,7 @@ Spectrum eval_op::operator()(const ThinFilm& bsdf) const {
 	Vector2 R123 = Vector2(R12.x * R23.x, R12.y * R23.y);//R12 * R23;
 	//std::cout << "R123" << R123.x << R123.y << std::endl;
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!here !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	Vector2 r123 = Vector2(sqrt(r123.x), sqrt(r123.y));
+	Vector2 r123 = Vector2(sqrt(R123.x), sqrt(R123.y));
 	r123 = Vector2(0.95, 0.95);
 	//std::cout << r123.x << r123.y << std::endl;
 	Vector2 Rs = Vector2(sqr(T121).x * R23.x, sqr(T121).y * R23.y) / (1 - R123);
@@ -148,7 +138,7 @@ sample_bsdf_op::operator()(const ThinFilm& bsdf) const {
 
 
 	Real alpha = eval(bsdf.alpha, vertex.uv, vertex.uv_screen_size, texture_pool);
-	Spectrum eta = eval(bsdf.eta, vertex.uv, vertex.uv_screen_size, texture_pool);
+	Real eta = eval(bsdf.eta, vertex.uv, vertex.uv_screen_size, texture_pool);
 
 	Vector3 local_dir_in = to_local(frame, dir_in);
 	Vector3 local_micro_normal = sample_visible_normals(local_dir_in, alpha, rnd_param_uv);
@@ -156,7 +146,7 @@ sample_bsdf_op::operator()(const ThinFilm& bsdf) const {
 
 	Spectrum reflected = normalize(dir_in + 2 * dot(dir_in, half_vector) * half_vector);
 	reflected = 2 * dot(dir_in, half_vector) * half_vector - dir_in;
-	return BSDFSampleRecord{ reflected, eta[0], alpha };
+	return BSDFSampleRecord{ reflected, eta, alpha };
 }
 
 

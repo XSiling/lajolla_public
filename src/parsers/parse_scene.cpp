@@ -1171,29 +1171,29 @@ std::tuple<std::string /* ID */, Material> parse_bsdf(
         return std::make_tuple(id, Lambertian{
             make_constant_spectrum_texture(fromRGB(Vector3{0.0, 0.0, 0.0}))});
     } else if (type == "irid") {
-        Texture<Spectrum> eta = make_constant_spectrum_texture(Vector3(3, 3, 3));
-        Texture<Spectrum> k = make_constant_spectrum_texture(make_zero_spectrum());
-        Texture<Spectrum> filmEta = make_constant_spectrum_texture(make_const_spectrum(2.0));
-        Texture<Spectrum> height = make_constant_spectrum_texture(make_const_spectrum(5000));
-        Texture<Real> alpha = make_constant_float_texture(0.0001);
+        Texture<Real> eta = make_constant_float_texture(Real(3.0));
+        Texture<Real> k = make_constant_float_texture(Real(0.0));
+        Texture<Real> filmEta = make_constant_float_texture(Real(2.0));
+        Texture<Real> height = make_constant_float_texture(Real(5000.0));
+        Texture<Real> alpha = make_constant_float_texture(Real(0.0001));
         
         for (auto child : node.children()) {
             std::string name = child.attribute("name").value();
 
             if (name == "eta") {
-                eta = parse_spectrum_texture(child, texture_map, texture_pool, default_map);
+                eta = parse_float_texture(child, texture_map, texture_pool, default_map);
             }
 
             if (name == "k") {
-                k = parse_spectrum_texture(child, texture_map, texture_pool, default_map);
+                k = parse_float_texture(child, texture_map, texture_pool, default_map);
             }
 
             if (name == "filmEta") {
-                filmEta = parse_spectrum_texture(child, texture_map, texture_pool, default_map);
+                filmEta = parse_float_texture(child, texture_map, texture_pool, default_map);
             }
 
             if (name == "height") {
-                height = parse_spectrum_texture(child, texture_map, texture_pool, default_map);
+                height = parse_float_texture(child, texture_map, texture_pool, default_map);
             }
 
             if (name == "alpha") {
