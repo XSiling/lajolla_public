@@ -188,7 +188,7 @@ public:
 
       return I * model;
    }
-
+   
    Float pdf(const BSDFSamplingRecord &bRec, EMeasure measure) const {
       if (measure != ESolidAngle ||
          Frame::cosTheta(bRec.wi) <= 0 ||

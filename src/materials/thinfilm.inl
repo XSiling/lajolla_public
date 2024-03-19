@@ -28,11 +28,21 @@ Spectrum eval_op::operator()(const ThinFilm& bsdf) const {
 	Vector3 half_vector = normalize(dir_in + dir_out);
 	Real NDotH = dot(frame.n, half_vector);
 
-	Real eta_2 = filmEta[0];
-	Real eta_3 = eta[0];
-	Real kappa3 = k[0];
-	Real Dinc = 0.5;
+	//Real eta_2 = filmEta[0];
+	//Real eta_3 = eta[0];
+	//Real kappa3 = k[0];
+	//Real Dinc = 0.5;
 
+	/*Real eta_2 = 1.0;
+	Real eta_3 = 1.0;
+	Real kappa3 = 1.0;
+	Real Dinc = 0.5;
+	*/
+
+	Real eta_2 = 1.0;
+	Real eta_3 = 3.5;
+	Real kappa3 = 1.2;
+	Real Dinc = 1.0;
 
 	Real smoothstep;
 	smoothstep = std::clamp((kappa3 - 0.0) / (0.03 - 0.0), 0.0, 1.0);
