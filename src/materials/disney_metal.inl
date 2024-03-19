@@ -1,8 +1,5 @@
 #include "../microfacet.h"
 
-// reference source: https://github.com/knightcrawler25/GLSL-PathTracer/blob/master/src/shaders/common/disney.glsl
-// line 90
-
 Spectrum eval_op::operator()(const DisneyMetal &bsdf) const {
     if (dot(vertex.geometric_normal, dir_in) < 0 ||
             dot(vertex.geometric_normal, dir_out) < 0) {
@@ -15,37 +12,43 @@ Spectrum eval_op::operator()(const DisneyMetal &bsdf) const {
         frame = -frame;
     }
     // Homework 1: implement this!
-    Spectrum base_color = eval(bsdf.base_color, vertex.uv, vertex.uv_screen_size, texture_pool);
-    Real roughness = eval(bsdf.roughness, vertex.uv, vertex.uv_screen_size, texture_pool);
-    Real anisotropic = eval(bsdf.anisotropic, vertex.uv, vertex.uv_screen_size, texture_pool);
 
-    roughness = std::clamp(roughness, Real(0.01), Real(1));
-    //anisotropic = std::clamp(anisotropic, Real(0.01), Real(1));
-
+    // Common variables
+    Spectrum base_color = eval(
+        bsdf.base_color, vertex.uv, vertex.uv_screen_size, texture_pool);
+    Real roughness = eval(
+        bsdf.roughness, vertex.uv, vertex.uv_screen_size, texture_pool);
+    Real anisotropic = eval(
+        bsdf.anisotropic, vertex.uv, vertex.uv_screen_size, texture_pool);
     Vector3 half_vector = normalize(dir_in + dir_out);
-    Real HDotL = dot(half_vector, dir_out);
+    Real h_dot_out = dot(half_vector, dir_out);
+    Real aspect = sqrt(1 - anisotropic * Real(0.9));
+    constexpr Real min_alpha = Real(0.0001);
+    Real alpha_x = max(min_alpha, roughness * roughness / aspect);
+    Real alpha_y = max(min_alpha, roughness * roughness * aspect);
 
-    // get Fm
-    Spectrum Fm = schlick_fresnel(base_color, std::abs(HDotL));
-    //base_color + (1 - base_color) * pow(1 - std::abs(HDotL), 5);
+    // Disney's metallic BRDF is standard Cook-Torrence
+    // microfacet model: F * G * D / (4 * n_dot_in)
+    // (We include n_dot_out in our BRDFs)
+
+    // For F, they use a Schlick approximation
+    // F0 + (1 - F0) * (1 - h_dot_out)
+    // For F0 they blend between base color and RGB(1, 1, 1) using
+    // specular and metallic parameters. This does not make much sense
+    // in our case since we are only modelling the metallic part --
+    // we will use just the base color.
+    Spectrum F = schlick_fresnel(base_color, h_dot_out);
+
+    // For D, they use an anisotropic Trowbridge-Reitz distribution (aka GGX)
+    Real D = GTR2(to_local(frame, half_vector), alpha_x, alpha_y);
     
-    // get Dm
-    Real aspect = std::sqrt(1 - 0.9 * anisotropic);
-    Real alphax = std::max(0.0001, roughness * roughness / aspect);
-    Real alphay = std::max(0.0001, roughness * roughness * aspect);
+    // For G, they use the Smith masking term corresponds to GTR2
+    Real G_in = smith_masking_gtr2(to_local(frame, dir_in), alpha_x, alpha_y);
+    Real G_out = smith_masking_gtr2(to_local(frame, dir_out), alpha_x, alpha_y);
+    Real G = G_in * G_out;
 
-    // github version x hw1 version YES quite different
-    Real NDotH = dot(frame.n, half_vector);
-    Vector3 Hl = to_local(frame, half_vector);
-    Real Dm = GGX_metal(Hl, alphax, alphay);
-
-    // get Gm
-    Real NDotV = dot(frame.n, dir_in);
-    Real GV = Smith_metal(to_local(frame,dir_in), alphax, alphay);
-    Real GL = Smith_metal(to_local(frame,dir_out), alphax, alphay);
-    Real Gm = GV * GL;
-    Spectrum R = Fm * Dm * Gm;
-    return R / (4 * std::abs(NDotV));
+    // And we're done!
+    return F * D * G / (4 * dot(dir_in, vertex.shading_frame.n));
 }
 
 Real pdf_sample_bsdf_op::operator()(const DisneyMetal &bsdf) const {
@@ -60,28 +63,23 @@ Real pdf_sample_bsdf_op::operator()(const DisneyMetal &bsdf) const {
         frame = -frame;
     }
     // Homework 1: implement this!
-    // same as roughplastic
-    // currently exactly copy
-    
+
+    // Common variables
+    Real roughness = eval(
+        bsdf.roughness, vertex.uv, vertex.uv_screen_size, texture_pool);
+    Real anisotropic = eval(
+        bsdf.anisotropic, vertex.uv, vertex.uv_screen_size, texture_pool);
     Vector3 half_vector = normalize(dir_in + dir_out);
-    Vector3 Hl = to_local(frame, half_vector);
-    Real NDotV = dot(frame.n, dir_in);
-    Real NDotL = dot(frame.n, dir_out);
-    Real NDotH = dot(frame.n, half_vector);
+    Real aspect = sqrt(1 - anisotropic * Real(0.9));
+    constexpr Real min_alpha = Real(0.0001);
+    Real alpha_x = max(min_alpha, roughness * roughness / aspect);
+    Real alpha_y = max(min_alpha, roughness * roughness * aspect);
 
-    // no specular_reflectance and diffuse reflectance here
-    Real roughness = eval(bsdf.roughness, vertex.uv, vertex.uv_screen_size, texture_pool);
-    roughness = std::clamp(roughness, Real(0.01), Real(1));
-    Real anisotropic = eval(bsdf.anisotropic, vertex.uv, vertex.uv_screen_size, texture_pool);
-    anisotropic = std::clamp(anisotropic, Real(0.01), Real(1));
-    Real aspect = std::sqrt(1 - 0.9 * anisotropic);
-    Real alphax = std::max(0.0001, roughness * roughness / aspect);
-    Real alphay = std::max(0.0001, roughness * roughness * aspect);
-
-    Real G = Smith_metal(to_local(frame, dir_in), alphax, alphay);
-    Real D = GGX_metal(Hl, alphax, alphay);
-    Real spec_prob = (G * D) / (4 * NDotV);
-    return spec_prob;
+    // We use visible normal sampling, so the PDF ~ (G_in * D) / (4 * n_dot_in)
+    Real D = GTR2(to_local(frame, half_vector), alpha_x, alpha_y);
+    //Real G_in = smith_masking_gtr2(to_local(frame, dir_in), alpha_x, alpha_y);
+    Real G_in = Smith_metal(to_local(frame, dir_in), alpha_x, alpha_y);
+    return D * G_in / (4 * dot(dir_in, vertex.shading_frame.n));
 }
 
 std::optional<BSDFSampleRecord>
@@ -96,25 +94,29 @@ std::optional<BSDFSampleRecord>
         frame = -frame;
     }
     // Homework 1: implement this!
-    // use the part of specular of roughplastic
-    Vector3 local_dir_in = to_local(frame, dir_in);
+
+    // Convert the incoming direction to local coordinates
+    Vector3 local_dir_in = to_local(vertex.shading_frame, dir_in);
     Real roughness = eval(
         bsdf.roughness, vertex.uv, vertex.uv_screen_size, texture_pool);
-    roughness = std::clamp(roughness, Real(0.01), Real(1));
-    Real anisotropic = eval(bsdf.anisotropic, vertex.uv, vertex.uv_screen_size, texture_pool);
-    anisotropic = std::clamp(anisotropic, Real(0.01), Real(1));
-    //Real alpha = roughness * roughness;
-    Real aspect = std::sqrt(1 - 0.9 * anisotropic);
-    Real alphax = std::max(0.0001, roughness * roughness / aspect);
-    Real alphay = std::max(0.0001, roughness * roughness * aspect);
-    Vector3 local_micro_normal = sample_visible_normals_metal(local_dir_in, alphax, alphay, rnd_param_uv);
+    Real anisotropic = eval(
+        bsdf.anisotropic, vertex.uv, vertex.uv_screen_size, texture_pool);
+    Real aspect = sqrt(1 - anisotropic * Real(0.9));
+    constexpr Real min_alpha = Real(0.0001);
+    Real alpha_x = max(min_alpha, roughness * roughness / aspect);
+    Real alpha_y = max(min_alpha, roughness * roughness * aspect);
 
-    Vector3 half_vector = to_world(frame, local_micro_normal);
+    //Vector3 local_micro_normal =
+    //    sample_visible_normals(local_dir_in, alpha_x, alpha_y, rnd_param_uv);
+    Vector3 local_micro_normal =
+        sample_visible_normals_metal(local_dir_in, alpha_x, alpha_y, rnd_param_uv);
+
+    // Transform the micro normal to world space
+    Vector3 half_vector = to_world(vertex.shading_frame, local_micro_normal);
+    // Reflect over the world space normal
     Vector3 reflected = normalize(-dir_in + 2 * dot(dir_in, half_vector) * half_vector);
     return BSDFSampleRecord{
-        reflected,
-        Real(0), roughness
-    };
+        reflected, Real(0) /* eta */, roughness /* roughness */};
 }
 
 TextureSpectrum get_texture_op::operator()(const DisneyMetal &bsdf) const {

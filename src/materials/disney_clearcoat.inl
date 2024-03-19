@@ -12,31 +12,35 @@ Spectrum eval_op::operator()(const DisneyClearcoat &bsdf) const {
         frame = -frame;
     }
     // Homework 1: implement this!
+    // Common variables
+    Real clearcoat_gloss = eval(
+        bsdf.clearcoat_gloss, vertex.uv, vertex.uv_screen_size, texture_pool);
+    Real alpha = (1 - clearcoat_gloss) * Real(0.1) + clearcoat_gloss * Real(0.001);
 
-    // the pdf solution is totally a mess.
-    Real clearcoat_gloss = eval(bsdf.clearcoat_gloss, vertex.uv, vertex.uv_screen_size, texture_pool);
-    //clearcoat_gloss = std::clamp(clearcoat_gloss, Real(0.01), Real(1));
-    Real alpha = (Real(1) - clearcoat_gloss) * Real(0.1) + clearcoat_gloss * Real(0.001);
     Vector3 half_vector = normalize(dir_in + dir_out);
-    Real HDotL = dot(half_vector, dir_out);
-    Real r0 = R0(Real(1.5));
-    Vector3 Hl = to_local(frame, half_vector);
+    Real n_dot_h = dot(frame.n, half_vector);
+    Real n_dot_out = dot(frame.n, dir_out);
+    Real h_dot_out = dot(half_vector, dir_out);
+    if (n_dot_out <= 0 || n_dot_h <= 0 || h_dot_out <= 0) {
+        return make_zero_spectrum();
+    }
 
-    Real Dr = GTR1(Hl.z, alpha);
-    Real Fr = r0 + (1-r0) * pow(1 - std::abs(HDotL), 5);
-    Real Gr = Smith_metal(to_local(frame, dir_in), 0.25, 0.25) * Smith_metal(to_local(frame, dir_out), 0.25, 0.25);
+    // They use a hardcoded IOR 1.5 -> F0 = 0.04
+    Real F = schlick_fresnel(Real(0.04), h_dot_out);
+    // Generalized Trowbridge-Reitz distribution
+    Real D = GTR1(n_dot_h, alpha);
+    // SmithG with fixed alpha
+    //Real G_in = smith_masking_gtr1(to_local(frame, dir_in));
+    //Real G_out = smith_masking_gtr1(to_local(frame, dir_out));
+    //Real G = G_in * G_out;
+    Real G = Smith_metal(to_local(frame, dir_in), 0.25, 0.25) * Smith_metal(to_local(frame, dir_out), 0.25, 0.25);
 
-    Real NDotV = dot(frame.n, dir_in);
-    
-    Real f = Fr * Gr * Dr / (4 * std::abs(NDotV));
-    // solve divisionbyzero problem
-    return Vector3(f, f, f);
-
+    return make_const_spectrum(F * D * G / (4 * dot(dir_in, vertex.shading_frame.n)));
 }
 
-Real pdf_sample_bsdf_op::operator()(const DisneyClearcoat& bsdf) const {
+Real pdf_sample_bsdf_op::operator()(const DisneyClearcoat &bsdf) const {
     if (dot(vertex.geometric_normal, dir_in) < 0 ||
-        dot(vertex.geometric_normal, dir_out) < 0) {
+            dot(vertex.geometric_normal, dir_out) < 0) {
         // No light below the surface
         return 0;
     }
@@ -45,22 +49,24 @@ Real pdf_sample_bsdf_op::operator()(const DisneyClearcoat& bsdf) const {
     if (dot(frame.n, dir_in) < 0) {
         frame = -frame;
     }
+    // Homework 1: implement this!
+
+    Real clearcoat_gloss = eval(
+        bsdf.clearcoat_gloss, vertex.uv, vertex.uv_screen_size, texture_pool);
+    Real alpha = (1 - clearcoat_gloss) * Real(0.1) + clearcoat_gloss * Real(0.001);
 
     Vector3 half_vector = normalize(dir_in + dir_out);
-    Real clearcoat_gloss = eval(bsdf.clearcoat_gloss, vertex.uv, vertex.uv_screen_size, texture_pool);
-    //clearcoat_gloss = std::clamp(clearcoat_gloss, Real(0.01), Real(1));
-    Real alpha = (1 - clearcoat_gloss) * Real(0.1) + clearcoat_gloss * Real(0.001);
-    Vector3 Hl = to_local(frame, half_vector);
-    Real Dr = GTR1(Hl.z, alpha);
+    Real n_dot_h = dot(frame.n, half_vector);
+    Real n_dot_out = dot(frame.n, dir_out);
+    Real h_dot_out = dot(half_vector, dir_out);
+    if (n_dot_out <= 0 || n_dot_h <= 0 || h_dot_out <= 0) {
+        return 0;
+    }
 
-    Real HDotL = dot(half_vector, dir_out);
-    Real NDotH = dot(frame.n, half_vector);
-    return Dr * abs(NDotH) / (Real(4) * abs(HDotL));
+    // We only importance sample D
+    Real D = GTR1(n_dot_h, alpha);
 
-    // Homework 1: implement this!
-    // source: https://github.com/mmp/pbrt-v3/blob/master/src/materials/disney.cpp
-    // source: https://schuttejoe.github.io/post/disneybsdf/
-
+    return D * n_dot_h / (4 * h_dot_out);
 }
 
 std::optional<BSDFSampleRecord>
@@ -75,28 +81,35 @@ std::optional<BSDFSampleRecord>
         frame = -frame;
     }
     // Homework 1: implement this!
-    Real clearcoat_gloss = eval(bsdf.clearcoat_gloss, vertex.uv, vertex.uv_screen_size, texture_pool);
-    //clearcoat_gloss = std::clamp(clearcoat_gloss, Real(0.01), Real(1));
 
-    Real alphag = (Real(1) - clearcoat_gloss) * Real(0.1) + clearcoat_gloss * Real(0.001);
-    Real alpha2 = alphag * alphag; //cannot believe the typo error here...
+    // Since the clearcoat BRDF does not have a clear geometry meaning,
+    // it is hard to sample the visible normals. We will just importance sample D
+    Real clearcoat_gloss = eval(
+        bsdf.clearcoat_gloss, vertex.uv, vertex.uv_screen_size, texture_pool);
+    Real alpha = (1 - clearcoat_gloss) * Real(0.1) + clearcoat_gloss * Real(0.001);
 
-    Real cosTheta = std::sqrt((Real(1) - std::pow(alpha2, Real(1) - rnd_param_uv.x)) / (Real(1) - alpha2));
-    Real sinTheta = std::sqrt(Real(1) - cosTheta * cosTheta);
-    Real phi = 2 * c_PI * rnd_param_uv.y;
-    Vector3 wm = Vector3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
-    //wm = normalize(wm);
+    // Appendix B.2 Burley's note
+    Real alpha2 = alpha * alpha;
+    // Equation 5
+    Real cos_h_elevation =
+        sqrt(max(Real(0), (1 - pow(alpha2, 1 - rnd_param_uv[0])) / (1 - alpha2)));
+    Real sin_h_elevation = sqrt(max(1 - cos_h_elevation * cos_h_elevation, Real(0)));
+    Real h_azimuth = 2 * c_PI * rnd_param_uv[1];
+    Vector3 local_micro_normal{
+        sin_h_elevation * cos(h_azimuth),
+        sin_h_elevation * sin(h_azimuth),
+        cos_h_elevation
+    };
+    // Transform the micro normal to world space
+    Vector3 half_vector = to_world(frame, local_micro_normal);
 
-
-    Vector3 half_vector = to_world(frame, wm);
+    // Reflect over the world space normal
     Vector3 reflected = normalize(-dir_in + 2 * dot(dir_in, half_vector) * half_vector);
     return BSDFSampleRecord{
-        reflected,
-        Real(0), alphag
+        reflected, Real(0) /* eta */, sqrt(alpha) /* roughness */
     };
 }
 
 TextureSpectrum get_texture_op::operator()(const DisneyClearcoat &bsdf) const {
     return make_constant_spectrum_texture(make_zero_spectrum());
 }
-

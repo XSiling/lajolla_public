@@ -34,9 +34,9 @@ int main(int argc, char *argv[]) {
     int num_threads = std::thread::hardware_concurrency();
     //int num_threads = 1;
     //std::string outputfile = "image_volpath_hetvol_colored.exr";
-    std::string outputfile = "image_test_sandbox.exr";
+    std::string outputfile = "image_test_sandbox_volume.exr";
     std::vector<std::string> filenames;
-    filenames.push_back("../scenes/sandbox/sandbox16.xml");
+    filenames.push_back("../scenes/sandbox/volume_sandbox16.xml");
     //filenames.push_back("../scenes/disney_bsdf_test/disney_thinfilm1.xml");
 
     RTCDevice embree_device = rtcNewDevice(nullptr);

@@ -11,27 +11,42 @@ Spectrum eval_op::operator()(const DisneyDiffuse &bsdf) const {
     }
 
     // Homework 1: implement this!
+
+    // Disney BSDF's diffuse component contains two parts:
+    // 1) a "base" diffuse model based on a modified Fresnel response
+    // 2) a "subsurface" diffuse model based on the Lommel-Seeliger law (modified to make things brighter) 
+    //    (brought to graphics by Hanrahan & Kruger)
+
+    // Fetch the textures value for later use
     Spectrum base_color = eval(bsdf.base_color, vertex.uv, vertex.uv_screen_size, texture_pool);
     Real roughness = eval(bsdf.roughness, vertex.uv, vertex.uv_screen_size, texture_pool);
     Real subsurface = eval(bsdf.subsurface, vertex.uv, vertex.uv_screen_size, texture_pool);
 
-    roughness = std::clamp(roughness, Real(0.01), Real(1));
-
+    // Common variables
+    Real n_dot_out = dot(frame.n, dir_out);
+    if (n_dot_out <= 0) {
+        return make_zero_spectrum();
+    }
+    Real n_dot_in = dot(frame.n, dir_in);
+    Real schlick_n_dot_out = pow(1 - n_dot_out, Real(5));
+    Real schlick_n_dot_in  = pow(1 - n_dot_in, Real(5));
     Vector3 half_vector = normalize(dir_in + dir_out);
+    Real h_dot_out = dot(half_vector, dir_out);
 
-    Real HDotL = std::abs(dot(half_vector, dir_out));
-    Real Fd90 = 0.5 + 2 * roughness * HDotL * HDotL;
+    // The base diffuse model
+    Real Fd90 = Real(0.5) + 2 * roughness * h_dot_out * h_dot_out;
+    Real base_diffuse = (1 + (Fd90 - 1) * schlick_n_dot_out) *
+                        (1 + (Fd90 - 1) * schlick_n_dot_in);
 
-    Real NDotL = std::abs(dot(frame.n, dir_out));
-    Real NDotV = std::abs(dot(frame.n, dir_in));
-    Real Fd = schlick_fresnel_approximation(Fd90, NDotV) * schlick_fresnel_approximation(Fd90, NDotL);
+    // The subsurface model
+    // Disney's hack to increase the response at grazing angle
+    Real Fss90 = h_dot_out * h_dot_out * roughness;
+    Real Fss = (1 + (Fss90 - 1) * schlick_n_dot_out) *
+               (1 + (Fss90 - 1) * schlick_n_dot_in);
+    // Lommel-Seeliger law (modified/rescaled)
+    Real ss = Real(1.25) * (Fss * (1 / (n_dot_out + n_dot_in) - Real(0.5)) + Real(0.5));
 
-    Spectrum fbD = base_color / c_PI * Fd * NDotL;
-
-    Real Fss90 = roughness * HDotL * HDotL;
-    Real Fss = schlick_fresnel_approximation(Fss90, NDotV) * schlick_fresnel_approximation(Fss90, NDotL);
-    Spectrum fss = 1.25 * base_color / c_PI * (Fss * (Real(1)/(NDotL + NDotV) - Real(0.5)) + Real(0.5)) * NDotL;
-    return (1 - subsurface) * fbD + subsurface * fss;
+    return base_color * ((base_diffuse * (1 - subsurface) + ss * subsurface) / c_PI) * n_dot_out;
 }
 
 Real pdf_sample_bsdf_op::operator()(const DisneyDiffuse &bsdf) const {
@@ -46,7 +61,7 @@ Real pdf_sample_bsdf_op::operator()(const DisneyDiffuse &bsdf) const {
         frame = -frame;
     }
     
-    // cosine hemisphere
+    // Homework 1: implement this!
     return fmax(dot(frame.n, dir_out), Real(0)) / c_PI;
 }
 
@@ -61,13 +76,10 @@ std::optional<BSDFSampleRecord> sample_bsdf_op::operator()(const DisneyDiffuse &
         frame = -frame;
     }
     
-    // Homework 1: copy lambertian
-    Real roughness = eval(bsdf.roughness, vertex.uv, vertex.uv_screen_size, texture_pool);
-    roughness = std::clamp(roughness, Real(0.01), Real(1));
+    // Homework 1: implement this!
     return BSDFSampleRecord{
-        to_world(frame, sample_cos_hemisphere(rnd_param_uv)),
-        Real(0), roughness
-    };
+        to_world(vertex.shading_frame, sample_cos_hemisphere(rnd_param_uv)),
+        Real(0) /* eta */, Real(1) /* roughness */};
 }
 
 TextureSpectrum get_texture_op::operator()(const DisneyDiffuse &bsdf) const {

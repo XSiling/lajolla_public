@@ -150,9 +150,14 @@ inline Real GTR2(Real n_dot_h, Real roughness) {
     return a2 / (c_PI * t * t);
 }
 
+inline Real GTR2(Vector3 n_dot_h, Real alphax, Real alphay) {
+    return GGX_metal(n_dot_h, alphax, alphay);
+}
+
 inline Real GGX(Real n_dot_h, Real roughness) {
     return GTR2(n_dot_h, roughness);
 }
+
 
 /// The masking term models the occlusion between the small mirrors of the microfacet models.
 /// See Eric Heitz's paper "Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs"
@@ -166,6 +171,11 @@ inline Real smith_masking_gtr2(const Vector3& v_local, Real roughness) {
     Vector3 v2 = v_local * v_local;
     Real Lambda = (-1 + sqrt(1 + (v2.x * a2 + v2.y * a2) / v2.z)) / 2;
     return 1 / (1 + Lambda);
+}
+
+
+inline Real smith_masking_gtr2(const Vector3& v_local, Real alphax, Real alphay) {
+    return Smith_metal(v_local, alphax, alphay);
 }
 
 /// See "Sampling the GGX Distribution of Visible Normals", Heitz, 2018.
