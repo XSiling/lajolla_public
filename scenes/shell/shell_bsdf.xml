@@ -1,0 +1,76 @@
+<scene version="2.1.0">
+
+<!-- Defaults, these can be set via the command line: -Darg=value -->
+
+	<default name="spp" value="100"/>
+	<default name="resx" value="1920"/>
+	<default name="resy" value="1080"/>
+
+<!-- Camera and Rendering Parameters -->
+
+	<integrator type="path" id="elm__0" name="elm__0">
+		<integer name="max_depth" value="12"/>
+	</integrator>
+	<sensor type="perspective" id="elm__1" name="elm__1">
+		<string name="fov_axis" value="x"/>
+		<float name="fov" value="39.597752"/>
+		<float name="principal_point_offset_x" value="0.000000"/>
+		<float name="principal_point_offset_y" value="-0.000000"/>
+		<float name="near_clip" value="0.100000"/>
+		<float name="far_clip" value="100.000000"/>
+		<transform name="to_world">
+			<rotate x="1" angle="9.361482035855218"/>
+			<rotate y="1" angle="0.3121807329263086"/>
+			<rotate z="1" angle="-2.017097397653682e-05"/>
+			<translate value="-0.345194 1.516951 -8.547698"/>
+		</transform>
+		<sampler type="independent" name="sampler">
+			<integer name="sample_count" value="$spp"/>
+		</sampler>
+		<film type="hdrfilm" name="film">
+			<integer name="width" value="$resx"/>
+			<integer name="height" value="$resy"/>
+		</film>
+	</sensor>
+
+<!-- Materials -->
+
+	<bsdf type="twosided" id="mat-Material_pureBSDF" name="mat-Material_pureBSDF">
+		<bsdf type="principled" name="bsdf">
+			<rgb value="0.809852 1.000000 0.871247" name="base_color"/>
+			<float name="spec_tint" value="0.000000"/>
+			<float name="spec_trans" value="0.000000"/>
+			<float name="metallic" value="0.0709220"/>
+			<float name="anisotropic" value="0.751269"/>
+			<float name="roughness" value="0.449401"/>
+			<float name="sheen" value="0.000000"/>
+			<float name="sheen_tint" value="0.500000"/>
+			<float name="clearcoat" value="0.000000"/>
+			<float name="clearcoat_gloss" value="0.004295"/>
+			<float name="specular" value="0.073050"/>
+		</bsdf>
+	</bsdf>
+
+<!-- Emitters -->
+
+	<shape type="rectangle" id="elm__4" name="elm__4">
+		<boolean name="flip_normals" value="true"/>
+		<transform name="to_world">
+			<matrix value="2.285506 0.000000 0.000000 0.000000 0.000000 0.000000 2.285506 3.360854 0.000000 -2.285506 0.000000 0.000000 0.000000 0.000000 0.000000 1.000000"/>
+		</transform>
+		<emitter type="area" name="emitter">
+			<rgb value="5.983730 5.983730 5.983730" name="radiance"/>
+		</emitter>
+		<bsdf type="null" name="bsdf"/>
+	</shape>
+
+<!-- Shapes -->
+
+	<shape type="ply" id="elm__3" name="elm__3">
+		<string name="filename" value="meshes/Circle.ply"/>
+		<ref id="mat-Material_pureBSDF" name="bsdf"/>
+	</shape>
+
+<!-- Volumes -->
+
+</scene>

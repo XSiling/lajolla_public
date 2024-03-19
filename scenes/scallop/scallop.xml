@@ -1,0 +1,101 @@
+<scene version="2.1.0">
+
+<!-- Defaults, these can be set via the command line: -Darg=value -->
+
+	<default name="spp" value="400"/>
+	<default name="resx" value="2012"/>
+	<default name="resy" value="2012"/>
+
+<!-- Camera and Rendering Parameters -->
+
+	<integrator type="path" id="elm__0" name="elm__0">
+		<integer name="max_depth" value="12"/>
+	</integrator>
+	<sensor type="perspective" id="elm__2" name="elm__2">
+		<string name="fov_axis" value="x"/>
+		<float name="fov" value="39.597752"/>
+		<float name="principal_point_offset_x" value="0.000000"/>
+		<float name="principal_point_offset_y" value="-0.000000"/>
+		<float name="near_clip" value="0.100000"/>
+		<float name="far_clip" value="100.000000"/>
+		<transform name="to_world">
+			<rotate x="1" angle="-159.58732897621292"/>
+			<rotate y="1" angle="0.5266664953895744"/>
+			<rotate z="1" angle="-179.999991348578"/>
+			<translate value="0.385211 2.301423 5.067515"/>
+		</transform>
+		<sampler type="independent" name="sampler">
+			<integer name="sample_count" value="$spp"/>
+		</sampler>
+		<film type="hdrfilm" name="film">
+			<integer name="width" value="$resx"/>
+			<integer name="height" value="$resy"/>
+		</film>
+	</sensor>
+
+<!-- Materials -->
+
+	<texture type="bitmap" name="base_color" id="scallop_texture">
+		<string name="filename" value="textures/scallop_base.001.png"/>
+	</texture>
+	<texture type="checkerboard" id="__planetex">
+		<rgb name="color0" value="0.4"/>
+		<rgb name="color1" value="0.2"/>
+		<float name="uscale" value="8.0"/>
+		<float name="vscale" value="8.0"/>
+		<float name="uoffset" value="0.0"/>
+		<float name="voffset" value="0.0"/>
+	</texture>
+
+	<bsdf type="diffuse" id="test">
+		<ref name="reflectance" id="__planetex"/>
+	</bsdf>
+
+	<bsdf type="twosided" id="mat-Material.001" name="mat-Material.001">
+		<bsdf type="principled" name="bsdf">
+			<texture type="bitmap" name="base_color">
+				<string name="filename" value="textures/scallop_base.001.png"/>
+			</texture>
+			<float name="spec_tint" value="0.000000"/>
+			<float name="spec_trans" value="0.000000"/>
+			<float name="metallic" value="0.200000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="roughness" value="0.035679"/>
+			<float name="sheen" value="0.000000"/>
+			<float name="sheen_tint" value="0.500000"/>
+			<float name="clearcoat" value="0.072222"/>
+			<float name="clearcoat_gloss" value="0.000900"/>
+			<float name="specular" value="0.511111"/>
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="default-bsdf" name="default-bsdf">
+		<bsdf type="diffuse" name="bsdf"/>
+	</bsdf>
+
+<!-- Emitters -->
+
+	<emitter type="point" id="elm__1" name="elm__1">
+		<point name="position" x="1.4792253971099854" y="4.157617568969727" z="2.811016082763672"/>
+		<rgb value="79.577469 79.577469 79.577469" name="intensity"/>
+	</emitter>
+	<emitter type="point" id="elm__5" name="elm__5">
+		<point name="position" x="-3.1177618503570557" y="2.3605098724365234" z="2.8822381496429443"/>
+		<rgb value="79.577469 79.577469 79.577469" name="intensity"/>
+	</emitter>
+
+<!-- Shapes -->
+
+	<shape type="ply" id="elm__4" name="elm__4">
+		<string name="filename" value="meshes/Scallop.ply"/>
+		<!-- <ref id="mat-Material.001" name="bsdf"/> -->
+		<ref id="test" name="bsdf"/>
+	</shape>
+	<shape type="ply" id="elm__7" name="elm__7">
+		<string name="filename" value="meshes/Cube.ply"/>
+		<boolean name="face_normals" value="true"/>
+		<ref id="default-bsdf" name="bsdf"/>
+	</shape>
+
+<!-- Volumes -->
+
+</scene>
