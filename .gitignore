@@ -45,3 +45,7 @@ build/
 
 #vscode related
 .vscode
+/.vs/cse272
+/.vs
+/scenes/sandbox/scallop_base.001.png
+/CMakeSettings.json
