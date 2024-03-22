@@ -17,16 +17,16 @@
       <boolean name="spectralAntialiasing" value="true"/>
 
       <!-- `eta` and `k` specify the complex IOR of the base layer -->
-      <float name="eta"  value="1" />
-      <float name="k"    value="1" />
+      <float name="eta"  value="1.9" />
+      <float name="k"    value="1.5" />
 
       <!-- `filmEta` and `height` specify the IOR of the film and
               its thickness in nanometers -->
-      <float name="filmEta"  value="1" />
-      <float name="height"   value="0.5" />
+      <float name="filmEta"  value="1.33" />
+      <float name="height"   value="550" />
 
       <!-- Roughness of the microfacet model -->
-      <float    name="alpha"    value="0.0001" />
+      <float    name="alpha"    value="0.01" />
     </bsdf>
   </shape>
 
