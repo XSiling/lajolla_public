@@ -479,6 +479,7 @@ inline void fresnelDielectric(float ct1, float n1, float n2,
 		float ct2 = sqrt(1 - sqr(nr) * st1);
 		Vector2 r = Vector2((n2 * ct1 - n1 * ct2) / (n2 * ct1 + n1 * ct2),
 			(n1 * ct1 - n2 * ct2) / (n1 * ct1 + n2 * ct2));
+        // std::cout << r << std::endl;
 		phi.x = (r.x < 0.0) ? c_PI : 0.0;
 		phi.y = (r.y < 0.0) ? c_PI : 0.0;
 		R = sqr(r);
